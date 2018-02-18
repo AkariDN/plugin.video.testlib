@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.testlib" name="Demo video library" version="0.1.0" provider-name="AkariDN">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <platform>all</platform>
+        <language>en</language>
+        <summary lang="en">Kodi video plugin for testing media library</summary>
+        <description lang="en">This plugin provides demo video content (movies and tv shows). Use it for test Kodi media library scanning and updating.</description>
+        <disclaimer></disclaimer>
+        <news>v0.1.0 - Initial release</news>
+        <license>GNU Affero General Public License, v3</license>
+        <forum></forum>
+        <website>https://kodi.tv/</website>
+        <source>https://github.com/AkariDN/plugin.video.testlib</source>
+        <email></email>
+        <assets>
+            <icon>icon.png</icon>
+            <fanart></fanart>
+            <screenshot></screenshot>
+        </assets>
+    </extension>
+</addon>
