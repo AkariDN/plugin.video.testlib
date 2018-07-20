@@ -25,8 +25,9 @@ NOTE: If you are using plugin url for video source with options string or in fol
 Parameters:
 * mode: "movies" or "tvshows" - display movies or tvshows from database
 * id, sid, eid - movie, tv show or episode id (the same as tag "id" from database)
-* noinfo=1 - do not set any information except title and season and episode numbers
+* noinfo=1 - do not set any information except title and season/episode numbers
 * kodi_action=refresh_info - reload item at specified path and return it as directory contents
+* kodi_action=check_exists - check if any item exists at specified path
 
 To strip folder mode and mixed mode different paths are used:
 * /mode/ - mixed mode
@@ -60,7 +61,7 @@ plugin://plugin.video.testlib/tvshows/?sid=123
 Refresh episode:
 ```
 plugin://plugin.video.testlib/?mode=tvshows&sid=123&eid=456&kodi_action=refresh_info
-plugin://plugin.video.testlib/lib/tvshows/123/456?kodi_action=refresh_info
+plugin://plugin.video.testlib/lib/tvshows/123/456/?kodi_action=refresh_info
 plugin://plugin.video.testlib/tvshows/?sid=123&eid=456&kodi_action=refresh_info
 ```
 Play movie:

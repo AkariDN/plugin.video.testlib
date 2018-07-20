@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.testlib" name="Demo video library" version="0.1.0" provider-name="AkariDN">
+<addon id="plugin.video.testlib" name="Demo video library" version="0.2.0" provider-name="AkariDN">
     <requires>
         <import addon="xbmc.python" version="2.25.0"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video</provides>
+        <medialibraryscanpath content="movies">movies/</medialibraryscanpath>
+        <medialibraryscanpath content="movies">lib/movies/</medialibraryscanpath>
+        <medialibraryscanpath content="movies">lib_noinfo/movies/</medialibraryscanpath>
+        <medialibraryscanpath content="tvshows">tvshows/</medialibraryscanpath>
+        <medialibraryscanpath content="tvshows">lib/tvshows/</medialibraryscanpath>
+        <medialibraryscanpath content="tvshows">lib_noinfo/tvshows/</medialibraryscanpath>
     </extension>
     <extension point="xbmc.addon.metadata">
         <platform>all</platform>
         <language>en</language>
+        <reuselanguageinvoker>true</reuselanguageinvoker>
         <summary lang="en">Kodi video plugin for testing media library</summary>
         <description lang="en">This plugin provides demo video content (movies and tv shows). Use it for test Kodi media library scanning and updating.</description>
         <disclaimer></disclaimer>
-        <news>v0.1.0 - Initial release</news>
+        <news>v0.2.0 - Video library cleaning support</news>
         <license>GNU Affero General Public License, v3</license>
         <forum></forum>
         <website>https://kodi.tv/</website>

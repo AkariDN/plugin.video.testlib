@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import sys
 import hashlib
 import xml.etree.ElementTree as ET
 try:
@@ -212,7 +211,7 @@ def mkitem(data, mediatype, url, noinfo):
     for i in data.get('ratings', []):
         li.setRating(i[0], i[1], i[2], i[3])
     for i in data.get('thumbs', []):
-        li.addAvailableThumb(i[0], i[1], season=i[2])
+        li.addAvailableArtwork(i[0], i[1], season=i[2])
     if 'fanart' in data:
         li.setAvailableFanart(data['fanart'])
     if 'uniqueids' in data:
@@ -224,8 +223,7 @@ def mkitem(data, mediatype, url, noinfo):
         li.setArt(data['art'])
     return li
 
-def list_videos(data, mediatype, url, noinfo, hash_url=None):
-    handle = int(sys.argv[1])
+def list_videos(handle, data, mediatype, url, noinfo, hash_url=None):
     xbmcplugin.setContent(handle, mediatype+'s')
     isfolder = mediatype == 'tvshow'
     for d in data:
@@ -235,24 +233,31 @@ def list_videos(data, mediatype, url, noinfo, hash_url=None):
         path = url.format(vid)
         li = mkitem(d, mediatype, path, noinfo)
         if hash_url and 'episodes' in d:
+            found = False
             m = hashlib.md5()
             for e in d['episodes']:
                 if 'id' in e:
                     m.update(hash_url.format(vid, quote_plus(e['id'])).encode('utf-8'))
-            li.setProperty('hash', m.hexdigest().upper())
+                    found = True
+            li.setProperty('hash', m.hexdigest().upper() if found else '')
         xbmcplugin.addDirectoryItem(handle, path, li, isfolder)
     xbmcplugin.endOfDirectory(handle)
 
-def play_video(data, mediatype, url, noinfo):
+def play_video(handle, data, mediatype, url, noinfo):
     if not data:
         return
-    handle = int(sys.argv[1])
     xbmcplugin.setContent(handle, mediatype+'s')
     li = mkitem(data, mediatype, url, noinfo)
     li.setPath(get_path('profile', 'test.mp4'))
     li.setProperty('original_listitem_url', url)
     li.setProperty('get_stream_details_from_player', 'true')
     xbmcplugin.setResolvedUrl(handle, True, li)
+
+def reply(handle, ret):
+    xbmcplugin.setResolvedUrl(handle, ret, xbmcgui.ListItem())
+
+def check_exists(handle, data):
+    reply(handle, data != None)
 
 def quote(arg):
     return arg if arg[:1] == '{' and arg[-1:] == '}' and arg[1:-1].isdigit() else quote_plus(arg)
@@ -297,45 +302,67 @@ def get_subdatalist(data, i):
     return [ret] if ret != None else []
 
 
-def main(urltype, mode, id1, id2, refresh, noinfo):
+def main(urltype, mode, id1, id2, refresh, check, noinfo, handle):
     data = load_database(mode)
     if not data:
+        reply(handle, False)
         return
     if mode == 'movies':
         if id1:
             url = mkurl(urltype, mode, id1, None, noinfo)
             if refresh:
                 log('Refresh movie {0}'.format(id1))
-                list_videos(get_subdatalist(data, id1), 'movie', url, noinfo)
+                list_videos(handle, get_subdatalist(data, id1), 'movie', url, noinfo)
+            elif check:
+                log('Check movie {0}'.format(id1))
+                check_exists(handle, get_subdata(data, id1))
             else:
                 log('Play movie {0}'.format(id1))
-                play_video(get_subdata(data, id1), 'movie', url, noinfo)
+                play_video(handle, get_subdata(data, id1), 'movie', url, noinfo)
         else:
-            log('List movies')
-            list_videos(data, 'movie', mkurl(urltype, mode, '{0}', None, noinfo), noinfo)
+            if check:
+                log('Check movies')
+                reply(handle, True)
+            else:
+                log('List movies')
+                list_videos(handle, data, 'movie', mkurl(urltype, mode, '{0}', None, noinfo), noinfo)
     elif mode == 'tvshows':
         if id1:
             if id2:
                 data = get_subdata(data, id1)
                 if not data or not 'episodes' in data:
+                    reply(handle, False)
                     return
                 data = data['episodes']
                 url = mkurl(urltype, mode, id1, id2, noinfo)
                 if refresh:
                     log('Refresh tvshow {0} episode {1}'.format(id1, id2))
-                    list_videos(get_subdatalist(data, id2), 'episode', url, noinfo)
+                    list_videos(handle, get_subdatalist(data, id2), 'episode', url, noinfo)
+                elif check:
+                    log('Check tvshow {0} episode {1}'.format(id1, id2))
+                    check_exists(handle, get_subdata(data, id2))
                 else:
                     log('Play tvshow {0} episode {1}'.format(id1, id2))
-                    play_video(get_subdata(data, id2), 'episode', url, noinfo)
+                    play_video(handle, get_subdata(data, id2), 'episode', url, noinfo)
             else:
                 if refresh:
                     log('Refresh tvshow {0}'.format(id1))
-                    list_videos(get_subdatalist(data, id1), 'tvshow', mkurl(urltype, mode, id1, None, noinfo), noinfo)
+                    list_videos(handle, get_subdatalist(data, id1), 'tvshow', mkurl(urltype, mode, id1, None, noinfo), noinfo)
+                elif check:
+                    log('Check tvshow {0}'.format(id1))
+                    check_exists(handle, get_subdata(data, id1))
                 else:
                     data = get_subdata(data, id1)
                     if data and 'episodes' in data:
                         log('List tvshow {0} episodes'.format(id1))
-                        list_videos(data['episodes'], 'episode', mkurl(urltype, mode, id1, '{0}', noinfo), noinfo)
+                        list_videos(handle, data['episodes'], 'episode', mkurl(urltype, mode, id1, '{0}', noinfo), noinfo)
+                    else:
+                        reply(handle, False)
         else:
-            log('List tvshows')
-            list_videos(data, 'tvshow', mkurl(urltype, mode, '{0}', None, noinfo), noinfo, mkurl(urltype, mode, '{0}', '{1}', noinfo))
+            if check:
+                log('Check tvshows')
+                reply(handle, True)
+            else:
+                log('List tvshows')
+                list_videos(handle, data, 'tvshow', mkurl(urltype, mode, '{0}', None, noinfo), noinfo, mkurl(urltype, mode, '{0}', '{1}', noinfo))
+

@@ -95,6 +95,8 @@ def parse_args():
             set_arg(ret, 'noinfo', True)
         elif k == 'kodi_action' and v == 'refresh_info':
             ret['refresh'] = True
+        elif k == 'kodi_action' and v == 'check_exists':
+            ret['check'] = True
     if 'id2' in ret and not 'id1' in ret:
         raise ValueError('Invalid URL')
     return ret if 'mode' in ret else {}
@@ -125,7 +127,7 @@ def plugin_main():
 
     if args:
         from library import main
-        main(args.get('urltype', 0), args['mode'], args.get('id1'), args.get('id2'), args.get('refresh', False), args.get('noinfo', False))
+        main(args.get('urltype', 0), args['mode'], args.get('id1'), args.get('id2'), args.get('refresh', False), args.get('check', False), args.get('noinfo', False), int(sys.argv[1]))
     else:
         show_menu()
 
